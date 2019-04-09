@@ -13,17 +13,19 @@ typedef vector<page_table_t> tables; //Vector of page tables
 unsigned int memory_pages;
 unsigned int disk_blocks;
 
-
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 /*Called when the pager starts, it is the number of pages provided in physical memory and the number of disk blocks avaliable on disk*/
 
   memory_pages = memory_pages;
   disk_blocks = disk_blocks;
 
+  cout << "Pager started with" + memory_pages + "physical memory pages." << endl;
 }
 
 void vm_create(pid_t pid){
 /*Called when a new application starts, and the data structures it needs to handle the process, and its subsequent calls to the library.*/
+
+  
 };
 
 
