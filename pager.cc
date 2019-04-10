@@ -6,32 +6,64 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <map>
+#include <stack>
 using namespace std;
 
 typedef vector<page_table_t> tables; //Vector of page tables
 
-unsigned int memory_pages;
-unsigned int disk_blocks;
+
+struct vpage {
+  int disk_block;
+  int dirty;
+  int zero;
+  int resident;
+  int ppage;
+};
+struct process{
+  //pid_t pid;
+  vpage page;
+  page_table_t ptable;
+};
+
+page_table_t* current;
+stack<int> phys_mem;
+stack<int> disk;
+map<int, page_table_t> diskMap;
+map<pid_t, process> processMap;
+
 
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 /*Called when the pager starts, it is the number of pages provided in physical memory and the number of disk blocks avaliable on disk*/
 
-  memory_pages = memory_pages;
-  disk_blocks = disk_blocks;
+  for (int i = 0; i < memory_pages; i++){
+    phys_mem.push(i);
+  }
 
-  cout << "Pager started with" + memory_pages + "physical memory pages." << endl;
+  for (int j = 0; j < disk_blocks; j++){
+    disk.push(j);
+  }
+  
+  cout << "Pager started with" + to_string( memory_pages) + "physical memory pages." << endl;
+  
 }
 
 void vm_create(pid_t pid){
 /*Called when a new application starts, and the data structures it needs to handle the process, and its subsequent calls to the library.*/
-
+  
   
 };
 
 
 
 
-void vm_switch(pid_t pid){};
+void vm_switch(pid_t pid){
+  //write error for calling this before vm_create
+  //If there is a process, then we need to swap the process
+  page_table_t* temp = &(processMap[pid].ptable);
+  page_table_base_register = temp;
+  
+};
 
 int vm_fault(void *addr, bool write_flag){
 /*called when you try to read something that is read-protect, same for write*/
