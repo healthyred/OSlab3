@@ -50,7 +50,13 @@ void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 
 void vm_create(pid_t pid){
 /*Called when a new application starts, and the data structures it needs to handle the process, and its subsequent calls to the library.*/
-  
+
+  process newProcess = new process;
+  page_table_t ptable = new page_table_t;
+  ptable -> ppage = -1;
+  ptable -> read_enable = 0;
+  ptable -> write_enable = 0;
+  newProcess -> ptable = ptable;
   
 };
 
@@ -74,7 +80,13 @@ int vm_fault(void *addr, bool write_flag){
 void vm_destory(){};
 
 void* vm_extend(){};
-/*This adds pages*/
+  //Check if the current has a vpage
 
+  //create vpage
+
+  //pop off disk block
+
+  //store vpage in process
+  
 
 int vm_syslog(void *message, unsigned int len){};
