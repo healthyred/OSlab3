@@ -20,13 +20,14 @@ struct vpage {
   int resident;
   int ppage;
 };
+
 struct process{
   //pid_t pid;
   vpage page;
   page_table_t ptable;
 };
 
-page_table_t* current;
+process current;
 stack<int> phys_mem;
 stack<int> disk;
 map<int, page_table_t> diskMap;
@@ -57,22 +58,22 @@ void vm_create(pid_t pid){
   ptable -> read_enable = 0;
   ptable -> write_enable = 0;
   newProcess -> ptable = ptable;
-  
+  processMap.insert(pair<pid_t, process>(pid, newProcess);
+
 };
-
-
-
 
 void vm_switch(pid_t pid){
   //write error for calling this before vm_create
   //If there is a process, then we need to swap the process
+  //Infrastrucure will call VMswitch
   page_table_t* temp = &(processMap[pid].ptable);
   page_table_base_register = temp;
+  current = processMap[pid];
   
 };
 
 int vm_fault(void *addr, bool write_flag){
-/*called when you try to read something that is read-protect, same for write*/
+  /*called when you try to read something that is read-protect, same for write*/
 
 }
 
@@ -82,10 +83,21 @@ void vm_destory(){};
 void* vm_extend(){};
   //Check if the current has a vpage
 
+  if disk.empty(){
+    return NULL;
+  }
+
   //create vpage
+  vpage newVpage = new vpage;
 
-  //pop off disk block
+  //pop off disk block 
+  int diskblock = disk.pop();
 
+  newVpage -> disk_block = diskblock;
+  newVpage -> zero = 1;
+  newVpage -> dirty = 0;
+  newVpage -> resident = 0;
+  newVpage -> ppage = -1; 
   //store vpage in process
   
 
