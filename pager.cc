@@ -17,11 +17,12 @@ struct Vpage{
   int dirty;
   int zero;
   int resident;
+  int address;
   int ppage;
 };
 
 struct process{
-  vpage page;
+  vector<Vpage> pageVector;
   page_table_t ptable;
 };
 
@@ -52,12 +53,12 @@ void vm_create(pid_t pid){
 
   process newProcess;
   page_table_t ptable;
-  ptable.ptes.ppage = -1;
-  ptable.ptes.read_enable = 0;
-  ptable.ptes.write_enable = 0;
+  ptable.ptes[0].ppage = -1;
+  ptable.ptes[0].read_enable = 0;
+  ptable.ptes[0].write_enable = 0;
   newProcess.ptable = ptable;
   processMap.insert(pair<pid_t, process>(pid, newProcess));
-
+  current = newProcess;
 };
 
 void vm_switch(pid_t pid){
@@ -73,30 +74,61 @@ void vm_switch(pid_t pid){
 int vm_fault(void *addr, bool write_flag){
   /*called when you try to read something that is read-protect, same for write*/
 
+  //Find vpage given the address
+  unsigned long address = addr; //The current vpage we divide by 2000 to get to the address
+  int vpageidx = (address - 0x60002000) /2000;
+  
+  Vpage toUpdate = current.pageVector.at(vpageidx);
+  
+  //get free ppage if its a non-resident
+  if (toUpdate.resident = -1){
+    if (phys_mem.empty()){
+      return -1;
+    };
+  
+    int ppage_num = phys_mem.top();
+    phys_mem.pop();
+  }
+  
+  //update page_table_t
+  current.ptable.ptes[0].ppage = ppage_num;
+  if(write_flag){
+    current.ptable.ptes[0].write_enable = 1;
+    current.ptable.ptes[0].read_enable = 1;
+  }else{
+    current.ptable.ptes[0].read_enable = 1;
+  }
+  
+  //Zero if necessary using memset
+  memset((char *) pm_physnum/(ppage*VM_PAGESIZE), 0 , VM_PAGESIZE);
 }
 
 
-void vm_destory(){};
+void vm_destory(){
+  /*Deallocates all of the memory of the current process*/
+};
 
-void* vm_extend(){};
+void* vm_extend(){
+
   //Check if the current has a vpage
-
-  if disk.empty(){
+  if(disk.empty()){
     return NULL;
   }
 
   //create vpage
   Vpage x;
 
-  //pop off disk block 
-  int diskblock = disk.pop();
-
-  x.disk_block = diskblock;
+  //pop off disk block
+  x.disk_block = disk.top();
+  disk.pop();
   x.zero = 1;
   x.dirty = 0;
-  x.resident = 0;
-  x.ppage = -1; 
-  //store vpage in process
+  x.resident = -1;
+  x.ppage = -1;
   
+  //store vpage in process
+  current.pageVector.push_back(x);
+  
+};
 
 int vm_syslog(void *message, unsigned int len){};
