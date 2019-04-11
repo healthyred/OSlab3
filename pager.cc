@@ -12,8 +12,7 @@ using namespace std;
 
 typedef vector<page_table_t> tables; //Vector of page tables
 
-
-struct vpage {
+struct Vpage{
   int disk_block;
   int dirty;
   int zero;
@@ -22,7 +21,6 @@ struct vpage {
 };
 
 struct process{
-  //pid_t pid;
   vpage page;
   page_table_t ptable;
 };
@@ -52,13 +50,13 @@ void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 void vm_create(pid_t pid){
 /*Called when a new application starts, and the data structures it needs to handle the process, and its subsequent calls to the library.*/
 
-  process newProcess = new process;
-  page_table_t ptable = new page_table_t;
-  ptable -> ppage = -1;
-  ptable -> read_enable = 0;
-  ptable -> write_enable = 0;
-  newProcess -> ptable = ptable;
-  processMap.insert(pair<pid_t, process>(pid, newProcess);
+  process newProcess;
+  page_table_t ptable;
+  ptable.ptes.ppage = -1;
+  ptable.ptes.read_enable = 0;
+  ptable.ptes.write_enable = 0;
+  newProcess.ptable = ptable;
+  processMap.insert(pair<pid_t, process>(pid, newProcess));
 
 };
 
@@ -88,16 +86,16 @@ void* vm_extend(){};
   }
 
   //create vpage
-  vpage newVpage = new vpage;
+  Vpage x;
 
   //pop off disk block 
   int diskblock = disk.pop();
 
-  newVpage -> disk_block = diskblock;
-  newVpage -> zero = 1;
-  newVpage -> dirty = 0;
-  newVpage -> resident = 0;
-  newVpage -> ppage = -1; 
+  x.disk_block = diskblock;
+  x.zero = 1;
+  x.dirty = 0;
+  x.resident = 0;
+  x.ppage = -1; 
   //store vpage in process
   
 
