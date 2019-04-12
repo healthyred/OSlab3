@@ -59,7 +59,7 @@ void vm_create(pid_t pid){
     ptable.ptes[i].write_enable = 0;
   }
   newProcess.ptable = ptable;
-  processMap.insert(pair<pid_t, process>(pid, newProcess));
+  processMap.insert(pair<pid_t, process>(pid, &newProcess));
   current = pid;
 };
 
@@ -67,7 +67,7 @@ void vm_switch(pid_t pid){
   //write error for calling this before vm_create
   //If there is a process, then we need to swap the process
   //Infrastrucure will call VMswitch
-  page_table_t* temp = &(processMap[pid].ptable);
+  page_table_t* temp = (processMap[pid]->ptable);
   page_table_base_register = temp;
   current = processMap[pid];
   
@@ -80,7 +80,7 @@ int vm_fault(void *addr, bool write_flag){
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
   
-  Vpage *toUpdate = &current.pageVector.at(vpageidx);
+  Vpage *toUpdate = current->pageVector.at(vpageidx);
 
   int ppage_num;//current ppage we are on
   //cout << 1 << endl;
@@ -102,12 +102,12 @@ int vm_fault(void *addr, bool write_flag){
 
   //cout << 2 << endl;
   //update page_table_t
-  current.ptable.ptes[vpageidx].ppage = ppage_num;
+  current->ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag){
-    current.ptable.ptes[vpageidx].write_enable = 1;
-    current.ptable.ptes[vpageidx].read_enable = 1;
+    current->ptable.ptes[vpageidx].write_enable = 1;
+    current->ptable.ptes[vpageidx].read_enable = 1;
   }else{
-    current.ptable.ptes[vpageidx].read_enable = 1;
+    current->ptable.ptes[vpageidx].read_enable = 1;
   }
 
   //cout << 3 << endl;
@@ -145,8 +145,8 @@ void* vm_extend(){
   x.ppage = -1;
   
   //store vpage in process
-  current.pageVector.push_back(x);
-  int idx = current.pageVector.size() - 1;
+  current->pageVector.push_back(x);
+  int idx = current->pageVector.size() - 1;
   
   //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
 
