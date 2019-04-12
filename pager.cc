@@ -50,7 +50,7 @@ void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 void vm_create(pid_t pid){
 /*Called when a new application starts, and the data structures it needs to handle the process, and its subsequent calls to the library.*/
 
-  process newProcess;
+  process newProcess = new process;
   page_table_t ptable;
   //set entries for the entire range
   for (int i = 0; i < (int) ((unsigned long)VM_ARENA_SIZE/ (unsigned long)VM_PAGESIZE); i++){
