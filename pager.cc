@@ -26,11 +26,11 @@ struct process{
   page_table_t ptable;
 };
 
-process current;
+process* current; //Then we look through map each time
 stack<int> phys_mem;
 stack<int> disk;
 //map<int, page_table_t> diskMap;
-map<pid_t, process> processMap;
+map<pid_t, process*> processMap;
 
 
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
@@ -52,12 +52,15 @@ void vm_create(pid_t pid){
 
   process newProcess;
   page_table_t ptable;
-  ptable.ptes[0].ppage = -1;
-  ptable.ptes[0].read_enable = 0;
-  ptable.ptes[0].write_enable = 0;
+  //set entries for the entire range
+  for (int i = 0; i < (int) ((unsigned long)VM_ARENA_SIZE/ (unsigned long)VM_PAGESIZE); i++){
+    ptable.ptes[i].ppage = -1;
+    ptable.ptes[i].read_enable = 0;
+    ptable.ptes[i].write_enable = 0;
+  }
   newProcess.ptable = ptable;
   processMap.insert(pair<pid_t, process>(pid, newProcess));
-  current = newProcess;
+  current = pid;
 };
 
 void vm_switch(pid_t pid){
@@ -80,7 +83,7 @@ int vm_fault(void *addr, bool write_flag){
   Vpage *toUpdate = &current.pageVector.at(vpageidx);
 
   int ppage_num;//current ppage we are on
-  
+  //cout << 1 << endl;
   //get free ppage if its a non-resident and set ppage to this if we have
   //a resident bit already
   if (toUpdate->resident == -1){
@@ -91,26 +94,31 @@ int vm_fault(void *addr, bool write_flag){
     ppage_num = phys_mem.top();
     phys_mem.pop();
     toUpdate->resident = 1;
+    toUpdate->ppage = ppage_num;
     
   }else{
     ppage_num = toUpdate->ppage;
   }
-  
+
+  //cout << 2 << endl;
   //update page_table_t
-  current.ptable.ptes[0].ppage = ppage_num;
+  current.ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag){
-    current.ptable.ptes[0].write_enable = 1;
-    current.ptable.ptes[0].read_enable = 1;
+    current.ptable.ptes[vpageidx].write_enable = 1;
+    current.ptable.ptes[vpageidx].read_enable = 1;
   }else{
-    current.ptable.ptes[0].read_enable = 1;
+    current.ptable.ptes[vpageidx].read_enable = 1;
   }
 
+  //cout << 3 << endl;
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
     //cout <<"Page Number: " <<  ppage_num << endl;
-    memset((char *) ((unsigned long) pm_physmem/(ppage_num*VM_PAGESIZE)), 0 , VM_PAGESIZE);
+    memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
   }
+
+  return 0;
 }
 
 
@@ -138,9 +146,13 @@ void* vm_extend(){
   
   //store vpage in process
   current.pageVector.push_back(x);
+  int idx = current.pageVector.size() - 1;
   
   //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
-  
+
+  void* address = (void*) (( idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR);
+  return address;
 };
 
 int vm_syslog(void *message, unsigned int len){};
+
