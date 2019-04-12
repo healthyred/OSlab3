@@ -30,7 +30,7 @@ process* current; //Then we look through map each time
 stack<int> phys_mem;
 stack<int> disk;
 //map<int, page_table_t> diskMap;
-map<pid_t, process* > processMap;
+map<pid_t, process*> processMap;
 
 
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
@@ -60,7 +60,7 @@ void vm_create(pid_t pid){
   }
   newProcess.ptable = ptable;
   //process* toadd = &newProcess;
-  processMap.insert(pair<pid_t, process>(pid, newProcess));
+  processMap.insert(pair<pid_t, process* >(pid, &newProcess));
   current = &newProcess;
 };
 
