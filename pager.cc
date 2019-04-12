@@ -62,6 +62,7 @@ void vm_create(pid_t pid){
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, &newProcess));
   current = &newProcess;
+  cout << "hello" <<endl;
 };
 
 void vm_switch(pid_t pid){
