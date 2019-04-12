@@ -22,7 +22,7 @@ struct Vpage{
 };
 
 struct process{
-  vector<Vpage> pageVector;
+  vector<Vpage*> pageVector;
   page_table_t ptable;
 };
 
@@ -58,10 +58,10 @@ void vm_create(pid_t pid){
     ptable.ptes[i].read_enable = 0;
     ptable.ptes[i].write_enable = 0;
   }
-  newProcess.ptable = ptable;
+  newProcess->ptable = ptable;
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, newProcess));
-  current* = newProcess;
+  current = newProcess;
   cout << "hello" <<endl;
 };
 
@@ -81,7 +81,7 @@ int vm_fault(void *addr, bool write_flag){
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
   
-  Vpage* toUpdate = &(current->pageVector.at(vpageidx));
+  Vpage* toUpdate = (current->pageVector.at(vpageidx));
 
   int ppage_num;//current ppage we are on
   //cout << 1 << endl;
@@ -137,12 +137,12 @@ void* vm_extend(){
   Vpage* x = new Vpage;
 
   //get disk block
-  x.disk_block = disk.top();
+  x->disk_block = disk.top();
   disk.pop();
-  x.zero = 1;
-  x.dirty = 0;
-  x.resident = -1;
-  x.ppage = -1;
+  x->zero = 1;
+  x->dirty = 0;
+  x->resident = -1;
+  x->ppage = -1;
   
   //store vpage in process
   current->pageVector.push_back(x);
