@@ -96,7 +96,6 @@ int vm_fault(void *addr, bool write_flag){
     phys_mem.pop();
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
-    
   }else{
     ppage_num = toUpdate->ppage;
   }
@@ -135,7 +134,7 @@ void* vm_extend(){
   }
 
   //create vpage
-  Vpage x;
+  Vpage x = new Vpage;
 
   //get disk block
   x.disk_block = disk.top();
