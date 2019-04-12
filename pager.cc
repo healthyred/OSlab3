@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <cstring>
 using namespace std;
 
 typedef vector<page_table_t> tables; //Vector of page tables
@@ -17,7 +18,6 @@ struct Vpage{
   int dirty;
   int zero;
   int resident;
-  int address;
   int ppage;
 };
 
@@ -29,7 +29,7 @@ struct process{
 process current;
 stack<int> phys_mem;
 stack<int> disk;
-map<int, page_table_t> diskMap;
+//map<int, page_table_t> diskMap;
 map<pid_t, process> processMap;
 
 
@@ -39,12 +39,11 @@ void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
   for (int i = 0; i < memory_pages; i++){
     phys_mem.push(i);
   }
-
   for (int j = 0; j < disk_blocks; j++){
     disk.push(j);
   }
   
-  cout << "Pager started with" + to_string( memory_pages) + "physical memory pages." << endl;
+  //cout << "Pager started with" + to_string( memory_pages) + "physical memory pages." << endl;
   
 }
 
@@ -75,19 +74,26 @@ int vm_fault(void *addr, bool write_flag){
   /*called when you try to read something that is read-protect, same for write*/
 
   //Find vpage given the address
-  unsigned long address = addr; //The current vpage we divide by 2000 to get to the address
-  int vpageidx = (address - 0x60002000) /2000;
+  unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
+  int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
   
-  Vpage toUpdate = current.pageVector.at(vpageidx);
+  Vpage *toUpdate = &current.pageVector.at(vpageidx);
+
+  int ppage_num;//current ppage we are on
   
-  //get free ppage if its a non-resident
-  if (toUpdate.resident = -1){
+  //get free ppage if its a non-resident and set ppage to this if we have
+  //a resident bit already
+  if (toUpdate->resident == -1){
     if (phys_mem.empty()){
       return -1;
     };
   
-    int ppage_num = phys_mem.top();
+    ppage_num = phys_mem.top();
     phys_mem.pop();
+    toUpdate->resident = 1;
+    
+  }else{
+    ppage_num = toUpdate->ppage;
   }
   
   //update page_table_t
@@ -98,13 +104,17 @@ int vm_fault(void *addr, bool write_flag){
   }else{
     current.ptable.ptes[0].read_enable = 1;
   }
-  
-  //Zero if necessary using memset
-  memset((char *) pm_physnum/(ppage*VM_PAGESIZE), 0 , VM_PAGESIZE);
+
+  //Zero when zeroPage is being used using memset
+  if(toUpdate->zero){
+    //cout <<"Page Number: " <<  ppage_num << endl;
+    memset((char *) ((unsigned long) pm_physmem/(ppage_num*VM_PAGESIZE)), 0 , VM_PAGESIZE);
+    toUpdate->zero = 0;
+  }
 }
 
 
-void vm_destory(){
+void vm_destroy(){
   /*Deallocates all of the memory of the current process*/
 };
 
@@ -118,7 +128,7 @@ void* vm_extend(){
   //create vpage
   Vpage x;
 
-  //pop off disk block
+  //get disk block
   x.disk_block = disk.top();
   disk.pop();
   x.zero = 1;
@@ -128,6 +138,8 @@ void* vm_extend(){
   
   //store vpage in process
   current.pageVector.push_back(x);
+  
+  //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
   
 };
 
