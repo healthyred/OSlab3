@@ -60,14 +60,14 @@ void vm_create(pid_t pid){
   }
   newProcess.ptable = ptable;
   processMap.insert(pair<pid_t, process>(pid, &newProcess));
-  current = pid;
+  current = &process;
 };
 
 void vm_switch(pid_t pid){
   //write error for calling this before vm_create
   //If there is a process, then we need to swap the process
   //Infrastrucure will call VMswitch
-  page_table_t* temp = (processMap[pid]->ptable);
+  page_table_t* temp = (processMap[pid]->&ptable);
   page_table_base_register = temp;
   current = processMap[pid];
   
@@ -80,7 +80,7 @@ int vm_fault(void *addr, bool write_flag){
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
   
-  Vpage *toUpdate = current->pageVector.at(vpageidx);
+  Vpage* toUpdate = &(current->pageVector.at(vpageidx));
 
   int ppage_num;//current ppage we are on
   //cout << 1 << endl;
