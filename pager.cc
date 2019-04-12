@@ -60,14 +60,14 @@ void vm_create(pid_t pid){
   }
   newProcess.ptable = ptable;
   processMap.insert(pair<pid_t, process>(pid, &newProcess));
-  current = &process;
+  current = &newProcess;
 };
 
 void vm_switch(pid_t pid){
   //write error for calling this before vm_create
   //If there is a process, then we need to swap the process
   //Infrastrucure will call VMswitch
-  page_table_t* temp = (processMap[pid]->&ptable);
+  page_table_t* temp = &(processMap[pid]->ptable);
   page_table_base_register = temp;
   current = processMap[pid];
   
