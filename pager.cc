@@ -70,7 +70,7 @@ void vm_switch(pid_t pid){
   //If there is a process, then we need to swap the process
   //Infrastrucure will call VMswitch
   page_table_t* temp = &(&processMap[pid]->ptable);
-  cout<<&processMap[pid]->ptable<<"first::"<<processMap[pid]->ptable<<"second::"<<endl;
+  cout<<&processMap[pid]->ptable<<"::first::"<<processMap[pid]->ptable<<"::second::"<<endl;
   page_table_base_register = temp;
   current = processMap[pid];
   
