@@ -59,7 +59,7 @@ void vm_create(pid_t pid){
     ptable.ptes[i].write_enable = 0;
   }
   newProcess.ptable = ptable;
-  processMap.insert(pair<pid_t, process>(pid, *newProcess));
+  processMap.insert(pair<pid_t, process>(pid, &newProcess));
   current = &newProcess;
 };
 
