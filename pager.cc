@@ -62,7 +62,7 @@ void vm_create(pid_t pid){
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, newProcess));
   current = newProcess;
-  cout << "hello" <<endl;
+  //cout << "hello" <<endl;
 };
 
 void vm_switch(pid_t pid){
@@ -151,6 +151,7 @@ void* vm_extend(){
   //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
 
   void* address = (void*) (( idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR);
+  
   return address;
 };
 
