@@ -106,7 +106,7 @@ int vm_fault(void *addr, bool write_flag){
         pageToDisk = clockQ.front();
         pageToDisk -> reference = 0;
         clockQ.push_back(clockQ.front());
-        clockQ.erase(clockQ.front());
+        clockQ.erase(clockQ.begin());
       }
       
       //set the rw bits for evicted page to false
