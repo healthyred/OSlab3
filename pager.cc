@@ -14,11 +14,13 @@ using namespace std;
 typedef vector<page_table_t> tables; //Vector of page tables
 
 struct Vpage{
+  //TODO: set the dirty bits later
   int disk_block;
   int dirty;
   int zero;
   int resident;
   int ppage;
+  int reference;
 };
 
 struct process{
@@ -31,7 +33,7 @@ stack<int> phys_mem;
 stack<int> disk;
 //map<int, page_table_t> diskMap;
 map<pid_t, process*> processMap;
-
+vector<Vpage*> clockQ; //A queue of the most recently accessed processes
 
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 /*Called when the pager starts, it is the number of pages provided in physical memory and the number of disk blocks avaliable on disk*/
@@ -74,6 +76,7 @@ void vm_switch(pid_t pid){
   current = processMap[pid];
 };
 
+
 int vm_fault(void *addr, bool write_flag){
   /*called when you try to read something that is read-protect, same for write*/
 
@@ -89,18 +92,32 @@ int vm_fault(void *addr, bool write_flag){
   //a resident bit already
   if (toUpdate->resident == -1){
     if (phys_mem.empty()){
-      return -1;
-    };
-  
+      //we need to evict from physical memory, by grabbing the first process map
+      // and we evict that process
+      Vpage* pageToDisk = clockQ.front(); //actually pop off later
+
+      //if the reference bit is marked, push it back to the end of the clockQ
+      unsigned int free_page = pageToDisk->ppage;
+      disk_write(pageToDisk->disk_block, free_page);
+      pageToDisk->ppage = -1;
+
+      toUpdate->resident = 1;
+      toUpdate->ppage = free_page;
+      
+      clockQ.push_back(toUpdate);//add to the clockQ
+    }
+    else{
+    //careful of buggy logic later, since we might need to pull
     ppage_num = phys_mem.top();
     phys_mem.pop();
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
+    }
   }else{
     ppage_num = toUpdate->ppage;
   }
-
-  //cout << 2 << endl;
+  clockQ.push_back(toUpdate);//push the most recently accessed page onto the stack
+ 
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag){
@@ -126,6 +143,8 @@ void vm_destroy(){
   /*Deallocates all of the memory of the current process*/
 };
 
+
+
 void* vm_extend(){
 
   //Check if the current has a vpage
@@ -147,7 +166,7 @@ void* vm_extend(){
   //store vpage in process
   current->pageVector.push_back(x);
   int idx = current->pageVector.size() - 1;
-  
+ 
   //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
 
   void* address = (void*) (( idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR);
