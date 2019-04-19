@@ -11,6 +11,8 @@
 #include <cstring>
 using namespace std;
 
+//TODO: Syslog, Destory
+
 typedef vector<page_table_t> tables; //Vector of page tables
 
 struct Vpage{
@@ -21,6 +23,7 @@ struct Vpage{
   int resident;
   int ppage;
   int reference;
+  int arenaidx;
 };
 
 struct process{
@@ -85,7 +88,7 @@ int vm_fault(void *addr, bool write_flag){
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
   
   Vpage* toUpdate = (current->pageVector.at(vpageidx));
-
+  toUpdate-> arenaidx = vpageidx;
   int ppage_num;//current ppage we are on
   //cout << 1 << endl;
   //get free ppage if its a non-resident and set ppage to this if we have
@@ -94,10 +97,24 @@ int vm_fault(void *addr, bool write_flag){
     if (phys_mem.empty()){
       //we need to evict from physical memory, by grabbing the first process map
       // and we evict that process
-      Vpage* pageToDisk = clockQ.front(); //actually pop off later
+      Vpage* pageToDisk; //actually pop off later
 
       //if the reference bit is marked, push it back to the end of the clockQ
+      
+      while((clockQ.front() -> reference)){
+        //Cycles through the clockQ wipping the reference bits to 0
+        pageToDisk = clockQ.front();
+        pageToDisk -> reference = 0;
+        clockQ.push_back(clockQ.front());
+        clockQ.erase(clockQ.front());
+      }
+      
+      //set the rw bits for evicted page to false
+      current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
+      current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+
       unsigned int free_page = pageToDisk->ppage;
+
       disk_write(pageToDisk->disk_block, free_page);
       pageToDisk->ppage = -1;
 
@@ -116,6 +133,7 @@ int vm_fault(void *addr, bool write_flag){
   }else{
     ppage_num = toUpdate->ppage;
   }
+  toUpdate->reference = 1;
   clockQ.push_back(toUpdate);//push the most recently accessed page onto the stack
  
   //update page_table_t
