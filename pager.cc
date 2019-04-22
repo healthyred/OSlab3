@@ -18,8 +18,8 @@ typedef vector<page_table_t> tables; //Vector of page tables
 struct Vpage{
   //TODO: set the dirty bits later
   int disk_block;
-  int dirty;
-  int zero;
+  int dirty;//use dirty bit to test write, set dirty bit when we modify page, when we swap back in set to 0, unless we modify again
+  int zero;//use zero bit to read or not, we don't need to write to disk
   int resident;
   int ppage;
   int reference;
@@ -27,8 +27,8 @@ struct Vpage{
 };
 
 struct process{
-  vector<Vpage*> pageVector;
-  page_table_t ptable;
+  vector<Vpage*> pageVector;//deallocate this vector
+  page_table_t ptable;//deallocate this page table
 };
 
 process* current; //Then we look through map each time
@@ -93,6 +93,7 @@ int vm_fault(void *addr, bool write_flag){
   //cout << 1 << endl;
   //get free ppage if its a non-resident and set ppage to this if we have
   //a resident bit already
+  
   if (toUpdate->resident == -1){
     if (phys_mem.empty()){
       //we need to evict from physical memory, by grabbing the first process map
@@ -104,7 +105,7 @@ int vm_fault(void *addr, bool write_flag){
       while((clockQ.front() -> reference)){
         //Cycles through the clockQ wipping the reference bits to 0
         pageToDisk = clockQ.front();
-        pageToDisk -> reference = 0;
+        pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
         clockQ.push_back(clockQ.front());
         clockQ.erase(clockQ.begin());
       }
@@ -114,7 +115,7 @@ int vm_fault(void *addr, bool write_flag){
       current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
 
       unsigned int free_page = pageToDisk->ppage;
-
+      ppage_num = free_page;
       disk_write(pageToDisk->disk_block, free_page);
       pageToDisk->ppage = -1;
 
@@ -148,7 +149,7 @@ int vm_fault(void *addr, bool write_flag){
   //cout << 3 << endl;
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
-    //cout <<"Page Number: " <<  ppage_num << endl;
+    cout <<"Page Number: " <<  ppage_num << endl;
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
   }
@@ -158,7 +159,21 @@ int vm_fault(void *addr, bool write_flag){
 
 
 void vm_destroy(){
-  /*Deallocates all of the memory of the current process*/
+  /*Deallocates all of the memory, and memory of the current process
+    (page tables, physical pages, and disk blocks), released physical pages need to go back onto the disk block.*/
+
+  /*
+  temp = current;
+
+
+  for (vector<Vpage *>::iterator it = pageVector.begin())
+  
+  for(int i = 0; i < (current->pageVector).size(); i++){
+    int putonstack = ((current->pageVector)->ppage);
+    delete current->
+    }*/
+
+  
 };
 
 
@@ -189,7 +204,7 @@ void* vm_extend(){
 
   void* address = (void*) (( idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR);
   
-  return address;
+  return address; 
 };
 
 int vm_syslog(void *message, unsigned int len){};
