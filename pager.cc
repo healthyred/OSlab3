@@ -36,6 +36,7 @@ stack<int> phys_mem;
 stack<int> disk;
 //map<int, page_table_t> diskMap;
 map<pid_t, process*> processMap;
+map<pid_t, process*>::iterator it;
 vector<Vpage*> clockQ; //A queue of the most recently accessed processes
 
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
@@ -132,6 +133,7 @@ int vm_fault(void *addr, bool write_flag){
       if(read){
         //reading in content if we need it
         disk_read(toUpdate->disk_block, free_page);
+	read = false;
       }
       //clockQ.push_back(toUpdate);//add to the clockQ
     }
@@ -168,6 +170,12 @@ int vm_fault(void *addr, bool write_flag){
     toUpdate->zero = 0;
   }
 
+  
+  if(read){
+    //reading in content if we need it
+    disk_read(toUpdate->disk_block, ppage_num);
+  }
+  
   return 0;
 }
 
@@ -176,17 +184,30 @@ void vm_destroy(){
   /*Deallocates all of the memory, and memory of the current process
     (page tables, physical pages, and disk blocks), released physical pages need to go back onto the disk block.*/
 
-  /*
-  temp = current;
-
-
-  for (vector<Vpage *>::iterator it = pageVector.begin())
+  //Get each process in the map
   
-  for(int i = 0; i < (current->pageVector).size(); i++){
-    int putonstack = ((current->pageVector)->ppage);
-    delete current->
-    }*/
+  for (it = processMap.begin(); it != processMap.end();it++)
+  {
+    vector<Vpage *>::iterator it2;
+    process* temp = it-> second;
 
+    for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();++it2)
+    {
+      Vpage* temp2 = *it2;
+      if(temp2->ppage != -1){
+	phys_mem.push(temp2->ppage);
+      }
+      delete temp2;
+    }
+
+    delete temp;
+    
+  }
+  
+  //delete each Vpage from each pageVector of a process
+
+  //release each of the physical pages back onto the disk block
+    
   
 };
 
