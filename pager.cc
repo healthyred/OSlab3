@@ -190,24 +190,29 @@ void vm_destroy(){
   {
     vector<Vpage *>::iterator it2;
     process* temp = it-> second;
-
+    
     for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();++it2)
     {
       Vpage* temp2 = *it2;
       if(temp2->ppage != -1){
-	phys_mem.push(temp2->ppage);
+	phys_mem.push(temp2->ppage);	
+      }
+      if(temp2->disk_block != -1){
+	disk.push(temp2->disk_block);
       }
       delete temp2;
+      
     }
+    //delete &(temp->ptable);
 
     delete temp;
-    
+    processMap.erase(it);
   }
   
   //delete each Vpage from each pageVector of a process
 
   //release each of the physical pages back onto the disk block
-    
+  
   
 };
 
