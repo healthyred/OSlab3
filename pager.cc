@@ -247,6 +247,16 @@ void* vm_extend(){
   return address; 
 };
 
+unsigned long convertIdxtoaddress(int idx){
+    unsigned long address = ((unsigned long) idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
+    return address;
+};
+
+int convertAddresstoIdx(unsigned long address){
+    int idx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ (unsigned long) VM_PAGESIZE;
+    return idx;
+};
+
 int vm_syslog(void *message, unsigned int len){
 
 /*Find the message address, and given the length of the thing
@@ -254,79 +264,46 @@ int vm_syslog(void *message, unsigned int len){
 
 /*If len is 0, if message is outside of what is currently allocated in arena*/
 
-  unsigned long address = (unsigned long) message; //The current vpage we divide by 2000 to get to the address
-  int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
-  unsigned long endpage = address + len;
-  int vpageidxend = (int) (endpage - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
+  unsigned long addr = (unsigned long) message;
+  unsigned long max = addr + len;
+  int firstpage = convertAddresstoIdx(addr);
+  int lastpage = convertAddresstoIdx(max);
 
-  //then while we have shifted less than the length
-  Vpage* toReadstart = (current->pageVector.at(vpageidx));
-  Vpage* toReadend = (current->pageVector.at(vpageidxend));
-  Vpage* toPrint; 
-  unsigned long startoffset = address - VM_ARENA_BASEADDR;
+  unsigned long offset = addr - convertIdxtoaddress(firstpage);
+  unsigned long end_offset = max - convertIdxtoaddress(lastpage);
+
+  bool firstpage = true;
 
   string s;
-  
-  //first section
-  int firstpage_num;
-  firstpage_num = toReadstart->ppage;
-
-  if (firstpage_num == -1){
-    unsigned long faultaddress = ((unsigned long) vpageidx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
-    void* void_fault = (void *) faultaddress; 
-    vm_fault(void_fault, false);
-    firstpage_num = toReadstart->ppage;
-  }
-
-  unsigned long start = (unsigned long) pm_physmem + (firstpage_num * (unsigned long) VM_PAGESIZE) + offset;
-  unsigned long end = (unsigned long) pm_physmem + ((firstpage_num + 1) * (unsigned long) VM_PAGESIZE);
-
-  for (int idx = start; idx <= end; idx++){
-    s.append(string(1, ((char *)pm_physmem)[idx]))
-  } 
-
-
-  //middle section, we iterate up to the end page
-  for (int running = vpageidx; vpageidx < vpageidxend; running++){
-    //iterate through VM and pull everything from the ppage, if its the first page, consider the offset
-    //if its the last page also only pull the offset
-    toPrint = current->pageVector.at(running);
-    int ppage_num = toPrint->ppage;
-
-    if (ppage_num == -1){
-      unsigned long faultaddress = ((unsigned long) running * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
-      void* void_fault = (void *) faultaddress; 
-      vm_fault(faultaddress, false);
-      ppage_num = toPrint->ppage;
+  for (int vpageidx = firstpage; vpageidx <= lastpage; vpageidx++){
+    unsigned long start = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
+    unsigned long end = start_middle + (unsigned long) VM_PAGESIZE;
+    if(firstpage){
+      start = start + offset;
+      firstpage = false;
+    }
+    
+    //calculating end page
+    if(vpageidx == lastpage){
+      end = max % (unsigned long) VM_PAGESIZE;
     }
 
-    unsigned long start_middle = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
-    unsigned long end_middle = start_middle + (unsigned long) VM_PAGESIZE;
-    for (int idx = start_middle; idx <= end_middle; idx++){
+    //get the actual page
+    Vpage* toaccess = current->pageVector.at(vpageidx);
+    int ppage_num = toaccess->ppage;
+    if(ppage_num == -1){
+      unsigned long faultaddress = convertIdxtoaddress(vpageidx);
+      void* void_fault = (void *) faultaddress; 
+      vm_fault(void_fault, false);
+      ppage_num = toaccess->ppage;
+    }
+
+    //appending the strings
+    for (unsigned long idx = start; idx <= end; idx++){
       s.append(string(1, ((char *)pm_physmem)[idx]))
     } 
+
   }
-  
-  //last section, only go through if its different from the first page
-  if(vpageidx != vpageidxend){
-      int endpage_num;
-      endpage_num = toReadstart->ppage;
-
-      if (endpage_num == -1){
-        unsigned long faultaddress = ((unsigned long) vpageidxend * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
-        void* void_fault = (void *) faultaddress; 
-        vm_fault(void_fault, false);
-        endpage_num = toReadstart->ppage;
-      }
-
-      unsigned long start = (unsigned long) pm_physmem + (endpage_num * (unsigned long) VM_PAGESIZE);
-      unsigned long end = (unsigned long) pm_physmem + ((endpage_num + 1) * (unsigned long) VM_PAGESIZE) + offset;
-
-      for (int idx = start; idx <= end; idx++){
-        s.append(string(1, ((char *)pm_physmem)[idx]))
-      } 
-  }
-
 
   cout << "syslog \t\t\t" << s << endl;
 
