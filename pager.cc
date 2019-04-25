@@ -285,6 +285,8 @@ int vm_syslog(void *message, unsigned int len){
       ppage_num = toaccess->ppage;
     }
     cout << "PPage_num: " << ppage_num << endl; 
+    cout << ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE) << endl;
+
     unsigned long start = (unsigned long) pm_physmem + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
 
