@@ -265,7 +265,7 @@ int vm_syslog(void *message, unsigned int len){
   Vpage* toPrint; 
   unsigned long startoffset = address - VM_ARENA_BASEADDR;
 
-  String s;
+  string s;
   
   //first section
   int firstpage_num;
