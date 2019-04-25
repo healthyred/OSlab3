@@ -284,13 +284,12 @@ int vm_syslog(void *message, unsigned int len){
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
     }
-
+    cout << "PPage_num: " << ppage_num << endl; 
     unsigned long start = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
 
     if(vpageidx == firstpage){
       start = start + offset;
-      firstpage = false;
     }
     
     //calculating end page
@@ -300,6 +299,7 @@ int vm_syslog(void *message, unsigned int len){
 
     //appending the strings
     for (unsigned long idx = start; idx <= end; idx++){
+      cout << "idx: " << idx << endl;
       s.append(string(1, ((char *)pm_physmem)[idx]));
     } 
 
