@@ -166,7 +166,7 @@ int vm_fault(void *addr, bool write_flag){
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
     //cout <<"Page Number: " <<  ppage_num << endl;
-    cout << "Zeroing Page: " << (unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE) << endl;
+    //cout << "Zeroing Page: " << (unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE) << endl;
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
   }
@@ -285,33 +285,33 @@ int vm_syslog(void *message, unsigned int len){
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
     }
-    cout << "PPage_num: " << ppage_num << endl; 
-    cout << (ppage_num * VM_PAGESIZE) << endl;
+    //cout << "PPage_num: " << ppage_num << endl; 
+    //cout << (ppage_num * VM_PAGESIZE) << endl;
 
-    unsigned long start = (unsigned long) pm_physmem + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
+    unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
 
-    cout << "pm_physmem: " << pm_physmem << endl;
-    cout << "start: " << start << endl;
-    cout << "end: " << end << endl;
+    //cout << "pm_physmem: " << pm_physmem << endl;
+    //cout << "start: " << start << endl;
+    // cout << "end: " << end << endl;
 
     if(vpageidx == firstpage){
       start = start + offset;
     }
     
     //calculating end page
-    // if(vpageidx == lastpage){
-    //   end = max % (unsigned long) VM_PAGESIZE;
-    // }
+    if(vpageidx == lastpage){
+      end = (len+offset) % (unsigned long) VM_PAGESIZE + start;//formula is top of (len-offset)%PageSize
+    }
 
-    cout << "start2: " << start << endl;
-    cout << "end2: " << end << endl;
+    //cout << "start2: " << start << endl;
+    //cout << "end2: " << end << endl;
 
     //appending the strings
-    for (unsigned long idx = start; idx <= end; idx++){
-      cout << "idx: " << idx << endl;
-      s.append(string(1, ((char *) pm_physmem)[idx]));
-    } 
+    for (unsigned long idx = start; idx < end; idx++){
+      //cout << "idx: " << idx << endl;
+     s.append(string(1, ((char *) pm_physmem)[idx]));
+    }
 
   }
 
