@@ -249,3 +249,21 @@ void* vm_extend(){
 
 int vm_syslog(void *message, unsigned int len){};
 
+/*Find the message address, and given the length of the thing
+ and iterate through each of the Vpages and then grab it from physmem */
+
+  unsigned long address = (unsigned long) message; //The current vpage we divide by 2000 to get to the address
+  int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
+  unsigned long endpage = address + len;
+  int vpageidxend = (int) (endpage - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
+
+  //then while we have shifted less than the length
+  Vpage* toReadstart = (current->pageVector.at(vpageidx));
+  Vpage* toReadend = (current->pageVector.at(vpageidxend));
+  Vpage* toPrint; 
+  String s;
+  for (int = toReadstart; toReadstart <= toReadend; toReadstart++){
+
+  }
+  
+  cout << "syslog \t\t\t" << s << endl;
