@@ -288,6 +288,7 @@ int vm_syslog(void *message, unsigned int len){
     unsigned long start = (unsigned long) pm_physmem + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
 
+    cout << "pm_physmem: " << pm_physmem << endl;
     cout << "start: " << start << endl;
     cout << "end: " << end << endl;
 
