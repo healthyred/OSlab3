@@ -166,7 +166,7 @@ int vm_fault(void *addr, bool write_flag){
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
     //cout <<"Page Number: " <<  ppage_num << endl;
-    cout << "Zeroing Page: " << ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE))) << endl;
+    cout << "Zeroing Page: " << (unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE) << endl;
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
   }
