@@ -166,6 +166,7 @@ int vm_fault(void *addr, bool write_flag){
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
     //cout <<"Page Number: " <<  ppage_num << endl;
+    cout << "Zeroing Page: " << ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE) << endl;
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
   }
@@ -285,7 +286,7 @@ int vm_syslog(void *message, unsigned int len){
       ppage_num = toaccess->ppage;
     }
     cout << "PPage_num: " << ppage_num << endl; 
-    cout << (ppage_num * VM_PAGESIZE) << endl;
+    cout << (char *) (ppage_num * VM_PAGESIZE) << endl;
 
     unsigned long start = (unsigned long) pm_physmem + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
@@ -309,7 +310,7 @@ int vm_syslog(void *message, unsigned int len){
     //appending the strings
     for (unsigned long idx = start; idx <= end; idx++){
       cout << "idx: " << idx << endl;
-      s.append(string(1, ((char *)pm_physmem)[idx]));
+      s.append(string(1, ((char *) pm_physmem)[idx]));
     } 
 
   }
