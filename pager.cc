@@ -264,12 +264,22 @@ int vm_syslog(void *message, unsigned int len){
  and iterate through each of the Vpages and then grab it from physmem */
 
 /*If len is 0, if message is outside of what is currently allocated in arena*/
+  int size = current->pageVector.size();
+  unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) pm_physmem;
 
+  //cout << "cap" << cap << endl;
   unsigned long addr = (unsigned long) message;
+  //cout << "addr" << addr << endl;
   unsigned long max = addr + len;
+
+
+  if(len == 0 || addr > cap){
+    return -1;
+  }
   int firstpage = convertAddresstoIdx(addr);
   int lastpage = convertAddresstoIdx(max-1);
 
+  
   unsigned long offset = addr - convertIdxtoaddress(firstpage);
   unsigned long end_offset = max - convertIdxtoaddress(lastpage);
 
