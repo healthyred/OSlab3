@@ -288,6 +288,9 @@ int vm_syslog(void *message, unsigned int len){
     unsigned long start = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
 
+    cout << "start: " << start << endl;
+    cout << "end: " << end << endl;
+
     if(vpageidx == firstpage){
       start = start + offset;
     }
@@ -296,6 +299,9 @@ int vm_syslog(void *message, unsigned int len){
     if(vpageidx == lastpage){
       end = max % (unsigned long) VM_PAGESIZE;
     }
+
+    cout << "start2: " << start << endl;
+    cout << "end2: " << end << endl;
 
     //appending the strings
     for (unsigned long idx = start; idx <= end; idx++){
