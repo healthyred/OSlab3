@@ -296,9 +296,9 @@ int vm_syslog(void *message, unsigned int len){
     }
     
     //calculating end page
-    if(vpageidx == lastpage){
-      end = max % (unsigned long) VM_PAGESIZE;
-    }
+    // if(vpageidx == lastpage){
+    //   end = max % (unsigned long) VM_PAGESIZE;
+    // }
 
     cout << "start2: " << start << endl;
     cout << "end2: " << end << endl;
