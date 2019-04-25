@@ -267,26 +267,13 @@ int vm_syslog(void *message, unsigned int len){
   unsigned long addr = (unsigned long) message;
   unsigned long max = addr + len;
   int firstpage = convertAddresstoIdx(addr);
-  int lastpage = convertAddresstoIdx(max);
+  int lastpage = convertAddresstoIdx(max-1);
 
   unsigned long offset = addr - convertIdxtoaddress(firstpage);
   unsigned long end_offset = max - convertIdxtoaddress(lastpage);
 
-  bool firstpage = true;
-
   string s;
   for (int vpageidx = firstpage; vpageidx <= lastpage; vpageidx++){
-    unsigned long start = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
-    unsigned long end = start_middle + (unsigned long) VM_PAGESIZE;
-    if(firstpage){
-      start = start + offset;
-      firstpage = false;
-    }
-    
-    //calculating end page
-    if(vpageidx == lastpage){
-      end = max % (unsigned long) VM_PAGESIZE;
-    }
 
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
@@ -296,6 +283,19 @@ int vm_syslog(void *message, unsigned int len){
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
+    }
+
+    unsigned long start = (unsigned long) pm_physmem + (ppage_num * (unsigned long) VM_PAGESIZE);
+    unsigned long end = unsigned long end = start + (unsigned long) VM_PAGESIZE;
+
+    if(vpageidx == firstpage){
+      start = start + offset;
+      firstpage = false;
+    }
+    
+    //calculating end page
+    if(vpageidx == lastpage){
+      end = max % (unsigned long) VM_PAGESIZE;
     }
 
     //appending the strings
