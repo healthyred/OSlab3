@@ -141,7 +141,7 @@ int vm_fault(void *addr, bool write_flag){
       //set the rw bits for each evicted page to false
       current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
       current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-      //      cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
+      cout << "pageToDisk Ppage: " << pageToDisk->ppage << endl;
 
       int free_page = pageToDisk->ppage;
       ppage_num = free_page;
@@ -160,7 +160,7 @@ int vm_fault(void *addr, bool write_flag){
 
       toUpdate->resident = 1;
       toUpdate->ppage = free_page;
-      
+      //  toUpdate->reference = 1;
     }
     else{
     //if its not resident, allocate a ppage for it
@@ -168,10 +168,14 @@ int vm_fault(void *addr, bool write_flag){
     phys_mem.pop();
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
+    //    toUpdate->reference = 1;
     }
     
     if(read){
        //reading in content if we need it
+       cout << "I have read something!!" << endl;
+       cout << "to_updated ppage" << toUpdate->ppage << endl;
+       cout << "to_update disk block" << toUpdate->disk_block<<endl;
        disk_read(toUpdate->disk_block, toUpdate->ppage);
        read = false;
     }
@@ -187,7 +191,7 @@ int vm_fault(void *addr, bool write_flag){
  
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
-  if(write_flag){
+  if(write_flag || toUpdate->dirty){
     current->ptable.ptes[vpageidx].write_enable = 1;
     current->ptable.ptes[vpageidx].read_enable = 1;
     toUpdate->dirty = 1;
@@ -319,12 +323,13 @@ int vm_syslog(void *message, unsigned int len){
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
-    if(current->ptable.ptes[vpageidx].read_enable == 0){
+    if(current->ptable.ptes[vpageidx].read_enable == 0||toaccess->dirty == 1 || toaccess->reference == 0){
 
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
+      cout << "Syslog Ppage: " << ppage_num << endl;
     }
 
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
