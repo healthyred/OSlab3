@@ -92,7 +92,11 @@ int vm_fault(void *addr, bool write_flag){
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
 
-  if(vpageidx < 0 || vpageidx > size){
+
+  //  cout << "vpageidx: " << vpageidx << endl;
+  //cout << "VPAGE size: " << size << endl;
+  
+  if(vpageidx < 0 || vpageidx >= size){
     return -1;
   }
   
@@ -120,23 +124,33 @@ int vm_fault(void *addr, bool write_flag){
         //Cycles through the clockQ wipping the reference bits to 0
         pageToDisk = clockQ.front();
         pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
+	
         clockQ.push_back(clockQ.front());
         clockQ.erase(clockQ.begin());
         //set the rw bits for each evicted page to false
         current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
         current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+	cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
+	
       }
       
       //set dirty bit to 0, since we no longer need it, unless we actually change the contents
-      
+
+      pageToDisk = clockQ.front();
+      clockQ.erase(clockQ.begin());
+      //set the rw bits for each evicted page to false
+      current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
+      current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+      //      cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
+
       int free_page = pageToDisk->ppage;
       ppage_num = free_page;
 
-      cout << "Freed Page: " << free_page << endl;
-      cout << "PPage: " << ppage_num << endl;
+      // cout << "Freed Page: " << free_page << endl;
+      // cout << "PPage: " << ppage_num << endl;
       
       if(pageToDisk->dirty == 1 && pageToDisk->zero != 0){
-	cout << "attempting to write to disk" << endl;
+	//cout << "attempting to write to disk" << endl;
 	disk_write(pageToDisk->disk_block, free_page);//only write if page is not zeropage, if its dirty
       }
       
