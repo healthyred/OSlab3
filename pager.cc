@@ -154,11 +154,6 @@ int vm_fault(void *addr, bool write_flag){
 
   clockQ.push_back(toUpdate);
 
-  if(toUpdate->zero != 0){
-    //reading in content if we need it
-    disk_read(toUpdate->disk_block, toUpdate->ppage);
-  }
-
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag || toUpdate->dirty){
@@ -173,6 +168,8 @@ int vm_fault(void *addr, bool write_flag){
   if(toUpdate->zero){
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
     toUpdate->zero = 0;
+  }else{
+    disk_read(toUpdate->disk_block, toUpdate->ppage);
   }
   
   return 0;
