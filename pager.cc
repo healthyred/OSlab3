@@ -121,126 +121,8 @@ int clockAlgorithm(){
 }
 
 int vm_fault(void *addr, bool write_flag){
-  // /*called when you try to read something that is read-protect, same for write*/
-
-  // /*Should fail when we try to fault outside of extended pages*/
-  // int size = current->pageVector.size();
-  // //unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) VM_ARENA_BASEADDR;
-  
-  // //Find vpage given the address
-  // unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
-  // int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
-  
-  // if(vpageidx < 0 || vpageidx >= size){
-  //   return -1;
-  // }
-  
-  // bool read = true;  
-  
-  // Vpage* toUpdate = (current->pageVector.at(vpageidx));
-  // toUpdate-> arenaidx = vpageidx;
-  // int ppage_num;//current ppage we are on
-  // //get free ppage if its a non-resident and set ppage to this if we have a resident bit already
-
-  // if (toUpdate->zero){
-  //   //Check if we need to read from disk or not
-  //   read = false;
-  // }
-
-  // if (toUpdate->resident == -1){
-
-  //   if (phys_mem.empty()){
-  //     //we need to evict from physical memory, by grabbing the first process map
-  //     // and we evict that process
-  //     Vpage* pageToDisk; //actually pop off later
-
-  //     //if the reference bit is marked, push it back to the end of the clockQ
-  //     while((clockQ.front() -> reference)){
-  //       //Cycles through the clockQ wipping the reference bits to 0
-  //       pageToDisk = clockQ.front();
-  //       pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
-	
-  //       clockQ.push_back(clockQ.front());
-  //       clockQ.erase(clockQ.begin());
-  //       //set the rw bits for each evicted page to false
-  //       current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
-  //       current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-	
-  //     }
-      
-  //     //set dirty bit to 0, since we no longer need it, unless we actually change the contents
-
-  //     pageToDisk = clockQ.front();
-  //     clockQ.erase(clockQ.begin());
-  //     //set the rw bits for each evicted page to false
-  //     current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
-  //     current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-  //     cout << "pageToDisk Ppage: " << pageToDisk->ppage << endl;
-
-  //     int free_page = pageToDisk->ppage;
-  //     ppage_num = free_page;
-
-  //     // cout << "Freed Page: " << free_page << endl;
-  //     // cout << "PPage: " << ppage_num << endl;
-      
-  //     if(pageToDisk->dirty == 1 && pageToDisk->zero != 0){
-	// //cout << "attempting to write to disk" << endl;
-	// disk_write(pageToDisk->disk_block, free_page);//only write if page is not zeropage, if its dirty
-  //     }
-      
-  //     pageToDisk->dirty = 0;
-  //     pageToDisk->ppage = -1;
-  //     pageToDisk->resident = -1; //set the resident bit of the evicted page to nonresident
-
-  //     toUpdate->resident = 1;
-  //     toUpdate->ppage = free_page;
-     
-  //   }
-  //   else{
-  //   //if its not resident, allocate a ppage for it
-  //   ppage_num = phys_mem.top();
-  //   phys_mem.pop();
-  //   toUpdate->resident = 1;
-  //   toUpdate->ppage = ppage_num;
-    
-  //   }
-    
-  //   if(read){
-  //      //reading in content if we need it
-  //      cout << "I have read something!!" << endl;
-  //      cout << "to_updated ppage " << toUpdate->ppage << endl;
-  //      cout << "to_update disk block " << toUpdate->disk_block<<endl;
-  //      disk_read(toUpdate->disk_block, toUpdate->ppage);
-  //      read = false;
-  //   }
-    
-  //   clockQ.push_back(toUpdate);
-
-  // }else{
-
-  //   ppage_num = toUpdate->ppage;
-  // }
-
-  // toUpdate->reference = 1;
  
-  // //update page_table_t
-  // current->ptable.ptes[vpageidx].ppage = ppage_num;
-  // if(write_flag || toUpdate->dirty){
-  //   current->ptable.ptes[vpageidx].write_enable = 1;
-  //   current->ptable.ptes[vpageidx].read_enable = 1;
-  //   toUpdate->dirty = 1;
-  // }else{
-  //   current->ptable.ptes[vpageidx].read_enable = 1;
-  // }
-
-  // //Zero when zeroPage is being used using memset
-  // if(toUpdate->zero){
-  //   memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
-  //   toUpdate->zero = 0;
-  // }
-
-  int size = current->pageVector.size();
-  
+  int size = current->pageVector.size(); 
   //Find vpage given the address
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = convertAddresstoIdx(address);
@@ -296,7 +178,6 @@ int vm_fault(void *addr, bool write_flag){
   return 0;
 }
 
-
 void vm_destroy(){
   /*Deallocates all of the memory, and memory of the current process
     (page tables, physical pages, and disk blocks), released physical pages need to go back onto the disk block.*/
@@ -314,23 +195,22 @@ void vm_destroy(){
       Vpage* temp2 = *it2;
       int cQidx = 0;
       for(it3 = clockQ.begin(); it3 != clockQ.end();++it3){
-	if(temp2 == *it3){
+	      if(temp2 == *it3){
       	  clockQ.erase(clockQ.begin()+cQidx);
       	  break;
       	}
-	cQidx++;
+	      cQidx++;
        }
       
       if(temp2->ppage != -1){
-	phys_mem.push(temp2->ppage);	
+	      phys_mem.push(temp2->ppage);	
       }
       if(temp2->disk_block != -1){
-	disk.push(temp2->disk_block);
+	      disk.push(temp2->disk_block);
       }
       delete temp2;
       
     }
-    //delete &(temp->ptable);
 
     delete temp;
     processMap.erase(it);
@@ -413,6 +293,7 @@ int vm_syslog(void *message, unsigned int len){
       cout << "Syslog Ppage: " << ppage_num << endl;
     }
 
+    cout << "Syslog_Ppage: " << ppage_num << endl;
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
     
