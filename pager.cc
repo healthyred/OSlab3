@@ -36,6 +36,16 @@ map<pid_t, process*> processMap;
 map<pid_t, process*>::iterator it;
 vector<Vpage*> clockQ; //A queue of the most recently accessed processes
 
+unsigned long convertIdxtoaddress(int idx){
+    unsigned long address = ((unsigned long) idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
+    return address;
+};
+
+int convertAddresstoIdx(unsigned long address){
+    int idx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ (unsigned long) VM_PAGESIZE;
+    return idx;
+};
+
 void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
 /*Called when the pager starts, it is the number of pages provided in physical memory and the number of disk blocks avaliable on disk*/
 
@@ -102,7 +112,7 @@ int clockAlgorithm(){
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   if(pageToDisk->dirty == 1 && pageToDisk->zero != 0){
     //only write if page is not zero and it is dirty
-    disk_write(pageToDisk->disk_block, free_page);
+    disk_write(pageToDisk->disk_block, freepage);
   }
   
   pageToDisk->dirty = 0;
@@ -247,7 +257,7 @@ int vm_fault(void *addr, bool write_flag){
     /*Either evict or get new ppage block*/
   
     if(phys_mem.empty()){
-      ppage_page = clockAlgorithm();
+      ppage_num = clockAlgorithm();
     }
     else{
       ppage_num = phys_mem.top();
@@ -265,7 +275,6 @@ int vm_fault(void *addr, bool write_flag){
   if(toUpdate->zero != 0){
     //reading in content if we need it
     disk_read(toUpdate->disk_block, toUpdate->ppage);
-    read = false;
   }
 
   //update page_table_t
@@ -362,15 +371,6 @@ void* vm_extend(){
   return address; 
 };
 
-unsigned long convertIdxtoaddress(int idx){
-    unsigned long address = ((unsigned long) idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
-    return address;
-};
-
-int convertAddresstoIdx(unsigned long address){
-    int idx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ (unsigned long) VM_PAGESIZE;
-    return idx;
-};
 
 int vm_syslog(void *message, unsigned int len){
 
