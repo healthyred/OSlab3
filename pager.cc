@@ -160,6 +160,7 @@ int vm_fault(void *addr, bool write_flag){
     current->ptable.ptes[vpageidx].write_enable = 1;
     current->ptable.ptes[vpageidx].read_enable = 1;
     toUpdate->dirty = 1;
+    toUpdate->zero = 0;
   }else{
     current->ptable.ptes[vpageidx].read_enable = 1;
   }
@@ -167,7 +168,7 @@ int vm_fault(void *addr, bool write_flag){
   //Zero when zeroPage is being used using memset
   if(toUpdate->zero){
     memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0 , VM_PAGESIZE);
-    toUpdate->zero = 0;
+    //    toUpdate->zero = 0;
   }else{
     disk_read(toUpdate->disk_block, toUpdate->ppage);
   }
