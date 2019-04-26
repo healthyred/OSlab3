@@ -129,9 +129,14 @@ int vm_fault(void *addr, bool write_flag){
       
       //set dirty bit to 0, since we no longer need it, unless we actually change the contents
       
-      unsigned int free_page = pageToDisk->ppage;
+      int free_page = pageToDisk->ppage;
       ppage_num = free_page;
+
+      cout << "Freed Page: " << free_page << endl;
+      cout << "PPage: " << ppage_num << endl;
+      
       if(pageToDisk->dirty == 1 && pageToDisk->zero != 0){
+	cout << "attempting to write to disk" << endl;
 	disk_write(pageToDisk->disk_block, free_page);//only write if page is not zeropage, if its dirty
       }
       
