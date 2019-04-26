@@ -233,7 +233,7 @@ void* vm_extend(){
   //get disk block
   
   x->disk_block = disk.top();
-  cout << "Allocated disk_blocks " << x->disk_block << endl;
+  //cout << "Allocated disk_blocks " << x->disk_block << endl;
   disk.pop();
   x->zero = 1;
   x->dirty = 0;
@@ -284,7 +284,7 @@ int vm_syslog(void *message, unsigned int len){
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
-    cout << "Syslog Ppage: " << ppage_num << endl;
+    //cout << "Syslog Ppage: " << ppage_num << endl;
 
     if(current->ptable.ptes[vpageidx].read_enable == 0){
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
@@ -294,7 +294,7 @@ int vm_syslog(void *message, unsigned int len){
 
     }
 
-    cout << "Syslog_Ppage: " << ppage_num << endl;
+    //cout << "Syslog_Ppage: " << ppage_num << endl;
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
     
@@ -308,8 +308,8 @@ int vm_syslog(void *message, unsigned int len){
     }
 
     
-    cout << "start: " << start << endl;
-    cout << "end: " << end << endl;
+    //cout << "start: " << start << endl;
+    //cout << "end: " << end << endl;
 
 
     //appending the strings
