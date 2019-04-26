@@ -284,13 +284,14 @@ int vm_syslog(void *message, unsigned int len){
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
-    if(current->ptable.ptes[vpageidx].read_enable == 0||toaccess->dirty == 1 || toaccess->reference == 0){
+    cout << "Syslog Ppage: " << ppage_num << endl;
 
+    if(current->ptable.ptes[vpageidx].read_enable == 0){
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
-      cout << "Syslog Ppage: " << ppage_num << endl;
+
     }
 
     cout << "Syslog_Ppage: " << ppage_num << endl;
