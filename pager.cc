@@ -130,7 +130,7 @@ int vm_fault(void *addr, bool write_flag){
         //set the rw bits for each evicted page to false
         current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
         current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-	cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
+	//	cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
 	
       }
       
@@ -161,12 +161,6 @@ int vm_fault(void *addr, bool write_flag){
       toUpdate->resident = 1;
       toUpdate->ppage = free_page;
       
-      if(read){
-        //reading in content if we need it
-        disk_read(toUpdate->disk_block, free_page);
-	read = false;
-      }
-      //add to the clockQ
     }
     else{
     //if its not resident, allocate a ppage for it
@@ -175,6 +169,13 @@ int vm_fault(void *addr, bool write_flag){
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
     }
+    
+    if(read){
+       //reading in content if we need it
+       disk_read(toUpdate->disk_block, toUpdate->ppage);
+       read = false;
+    }
+    
     clockQ.push_back(toUpdate);
 
   }else{
@@ -328,7 +329,7 @@ int vm_syslog(void *message, unsigned int len){
 
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
-
+    
     if(vpageidx == firstpage){
       start = start + offset;
     }
@@ -337,6 +338,11 @@ int vm_syslog(void *message, unsigned int len){
     if(vpageidx == lastpage){
       end = (len+offset) % (unsigned long) VM_PAGESIZE + start;//formula is top of (len-offset)%PageSize
     }
+
+    
+    cout << "start: " << start << endl;
+    cout << "end: " << end << endl;
+
 
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
