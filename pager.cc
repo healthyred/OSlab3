@@ -11,12 +11,9 @@
 #include <cstring>
 using namespace std;
 
-//TODO: Syslog, Destory
-
 typedef vector<page_table_t> tables; //Vector of page tables
 
 struct Vpage{
-  //TODO: set the dirty bits later
   int disk_block;
   int dirty;//use dirty bit to test write, set dirty bit when we modify page, when we swap back in set to 0, unless we modify again
   int zero;//use zero bit to read or not, we don't need to write to disk
@@ -91,10 +88,6 @@ int vm_fault(void *addr, bool write_flag){
   //Find vpage given the address
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
-
-
-  //  cout << "vpageidx: " << vpageidx << endl;
-  //cout << "VPAGE size: " << size << endl;
   
   if(vpageidx < 0 || vpageidx >= size){
     return -1;
@@ -130,7 +123,6 @@ int vm_fault(void *addr, bool write_flag){
         //set the rw bits for each evicted page to false
         current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
         current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-	//	cout << "pageToDisk Ppage: " << pageToDisk->ppage <<endl;
 	
       }
       
@@ -160,7 +152,7 @@ int vm_fault(void *addr, bool write_flag){
 
       toUpdate->resident = 1;
       toUpdate->ppage = free_page;
-      //  toUpdate->reference = 1;
+     
     }
     else{
     //if its not resident, allocate a ppage for it
@@ -168,14 +160,14 @@ int vm_fault(void *addr, bool write_flag){
     phys_mem.pop();
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
-    //    toUpdate->reference = 1;
+    
     }
     
     if(read){
        //reading in content if we need it
        cout << "I have read something!!" << endl;
-       cout << "to_updated ppage" << toUpdate->ppage << endl;
-       cout << "to_update disk block" << toUpdate->disk_block<<endl;
+       cout << "to_updated ppage " << toUpdate->ppage << endl;
+       cout << "to_update disk block " << toUpdate->disk_block<<endl;
        disk_read(toUpdate->disk_block, toUpdate->ppage);
        read = false;
     }
@@ -263,13 +255,15 @@ void* vm_extend(){
   Vpage* x = new Vpage;
 
   //get disk block
+  
   x->disk_block = disk.top();
+  cout << "Allocated disk_blocks " << x->disk_block << endl;
   disk.pop();
   x->zero = 1;
   x->dirty = 0;
   x->resident = -1;
   x->ppage = -1;
-  
+  x->reference = 0;
   //store vpage in process
   current->pageVector.push_back(x);
   int idx = current->pageVector.size() - 1;
