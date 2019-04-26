@@ -17,20 +17,8 @@ int main()
   p = (char *) vm_extend();
   p[4] = 'o';
   p[1] = 'e';
-  char *q;
-  q = (char *) vm_extend();
-  q[0] = 'w';
-  q[2] = ' ';
-  q[9000] = 'c';
-  char *a;
-
-  a = (char *) vm_extend();
-  char *b;
-  b = (char *) vm_extend();
-  char *c;
-  c = (char *) vm_extend();
+  vm_yield();
+  vm_yield();
   
   vm_syslog(p, 10);
-  vm_syslog(q,20000);
-  vm_syslog(p, -1);
 }

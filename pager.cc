@@ -84,12 +84,18 @@ void vm_switch(pid_t pid){
 int vm_fault(void *addr, bool write_flag){
   /*called when you try to read something that is read-protect, same for write*/
 
-  /*Should fail*/
+  /*Should fail when we try to fault outside of extended pages*/
+  int size = current->pageVector.size();
+  //unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) VM_ARENA_BASEADDR;
   
   //Find vpage given the address
   unsigned long address = (unsigned long) addr; //The current vpage we divide by 2000 to get to the address
   int vpageidx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ VM_PAGESIZE;
 
+  if(vpageidx < 0 || vpageidx > size){
+    return -1;
+  }
+  
   bool read = true;  
   
   Vpage* toUpdate = (current->pageVector.at(vpageidx));
@@ -150,13 +156,14 @@ int vm_fault(void *addr, bool write_flag){
     toUpdate->resident = 1;
     toUpdate->ppage = ppage_num;
     }
+    clockQ.push_back(toUpdate);
+
   }else{
 
     ppage_num = toUpdate->ppage;
   }
 
   toUpdate->reference = 1;
-  clockQ.push_back(toUpdate);
  
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
@@ -217,11 +224,6 @@ void vm_destroy(){
     processMap.erase(it);
   }
   
-  //delete each Vpage from each pageVector of a process
-
-  //release each of the physical pages back onto the disk block
-  
-  
 };
 
 
@@ -272,15 +274,16 @@ int vm_syslog(void *message, unsigned int len){
 
 /*If len is 0, if message is outside of what is currently allocated in arena*/
   int size = current->pageVector.size();
-  unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) pm_physmem;
+  unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) VM_ARENA_BASEADDR;
 
+  
   //cout << "cap" << cap << endl;
   unsigned long addr = (unsigned long) message;
   //cout << "addr" << addr << endl;
   unsigned long max = addr + len;
 
 
-  if(len == 0 || addr > cap){
+  if(len <= 0 || max > cap || addr < (unsigned long) VM_ARENA_BASEADDR){
     return -1;
   }
   int firstpage = convertAddresstoIdx(addr);
@@ -296,7 +299,8 @@ int vm_syslog(void *message, unsigned int len){
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
-    if(ppage_num == -1){
+    if(current->ptable.ptes[vpageidx].read_enable == 0){
+
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
@@ -314,9 +318,6 @@ int vm_syslog(void *message, unsigned int len){
     if(vpageidx == lastpage){
       end = (len+offset) % (unsigned long) VM_PAGESIZE + start;//formula is top of (len-offset)%PageSize
     }
-
-    //cout << "start2: " << start << endl;
-    //cout << "end2: " << end << endl;
 
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
