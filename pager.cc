@@ -110,7 +110,7 @@ int clockAlgorithm(){
   pageToDisk->resident = -1;
   current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-  if(pageToDisk->dirty == 1 || pageToDisk->zero != 0){
+  if(pageToDisk->dirty == 1 && pageToDisk->zero != 1){
     //only write if page is not zero and it is dirty
     disk_write(pageToDisk->disk_block, freepage);
   }
@@ -303,7 +303,7 @@ int vm_syslog(void *message, unsigned int len){
     
     //calculating end page
     if(vpageidx == lastpage){
-      end = (len+offset) % (unsigned long) VM_PAGESIZE + start;//formula is top of (len-offset)%PageSize
+      end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + start;//formula is top of (len-offset)%PageSize
     }
 
     
