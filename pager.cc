@@ -96,6 +96,7 @@ int clockAlgorithm(){
     pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
     clockQ.push_back(clockQ.front());
     clockQ.erase(clockQ.begin());
+    cout << "Clock_page: " << pageToDisk -> arenaidx << endl;
     current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
     current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   }
@@ -103,11 +104,11 @@ int clockAlgorithm(){
   //set dirty bit to 0, since we no longer need it, unless we actually change the contents
 
   pageToDisk = clockQ.front();
-  clockQ.erase(clockQ.begin());
   //set the rw bits page to false, and set to non-resident/noppage
   int freepage = pageToDisk->ppage;
   pageToDisk->ppage = -1;
   pageToDisk->resident = -1;
+  cout <<"Ptable index: " << pageToDisk->arenaidx << endl;
   current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   if(pageToDisk->dirty == 1){
@@ -116,6 +117,8 @@ int clockAlgorithm(){
   }
 
   pageToDisk->dirty = 0;
+  clockQ.erase(clockQ.begin());
+
   //set the resident bit of the evicted page to nonresident
   return freepage;
 }
@@ -133,6 +136,7 @@ int vm_fault(void *addr, bool write_flag){
   
   Vpage* toUpdate = (current->pageVector.at(vpageidx));
   toUpdate-> arenaidx = vpageidx;
+  cout << "Updating the arena idx: " << toUpdate->arenaidx << endl;
   int ppage_num;//current ppage we are on
 
   if(toUpdate->resident == -1){
@@ -167,6 +171,7 @@ int vm_fault(void *addr, bool write_flag){
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag || toUpdate->dirty){
+    cout << "vpageidx: " << vpageidx << endl;
     current->ptable.ptes[vpageidx].write_enable = 1;
     current->ptable.ptes[vpageidx].read_enable = 1;
     toUpdate->dirty = 1;
@@ -285,6 +290,7 @@ int vm_syslog(void *message, unsigned int len){
     //cout << "Syslog Ppage: " << ppage_num << endl;
 
     if(current->ptable.ptes[vpageidx].read_enable == 0){
+      cout << "Vpageix: " << vpageidx << endl;
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
