@@ -14,6 +14,8 @@ int main()
   }
 
   for (int i = 0; i < 20;i++){
+    p[i][i+1] = 'w';
     vm_syslog(p[i], 2000);
+    
   }
 }

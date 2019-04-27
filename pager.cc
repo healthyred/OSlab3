@@ -232,7 +232,6 @@ void* vm_extend(){
   //get disk block
   
   x->disk_block = disk.top();
-  //cout << "Allocated disk_blocks " << x->disk_block << endl;
   disk.pop();
   x->zero = 1;
   x->dirty = 0;
@@ -259,13 +258,11 @@ int vm_syslog(void *message, unsigned int len){
 /*If len is 0, if message is outside of what is currently allocated in arena*/
   int size = current->pageVector.size();
   unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) VM_ARENA_BASEADDR;
-
   
   //cout << "cap" << cap << endl;
   unsigned long addr = (unsigned long) message;
   //cout << "addr" << addr << endl;
   unsigned long max = addr + len;
-
 
   if(len <= 0 || max > cap || addr < (unsigned long) VM_ARENA_BASEADDR){
     return -1;
@@ -273,7 +270,6 @@ int vm_syslog(void *message, unsigned int len){
   int firstpage = convertAddresstoIdx(addr);
   int lastpage = convertAddresstoIdx(max-1);
 
-  
   unsigned long offset = addr - convertIdxtoaddress(firstpage);
   unsigned long end_offset = max - convertIdxtoaddress(lastpage);
 
@@ -290,10 +286,8 @@ int vm_syslog(void *message, unsigned int len){
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
       ppage_num = toaccess->ppage;
-
     }
 
-    //cout << "Syslog_Ppage: " << ppage_num << endl;
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
     
@@ -305,11 +299,6 @@ int vm_syslog(void *message, unsigned int len){
     if(vpageidx == lastpage){
       end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + start;//formula is top of (len-offset)%PageSize
     }
-
-    
-    //cout << "start: " << start << endl;
-    //cout << "end: " << end << endl;
-
 
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
