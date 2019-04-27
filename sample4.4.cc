@@ -14,6 +14,6 @@ int main()
   }
 
   for (int i = 0; i < 20;i++){
-    vm_syslog(p[i], 10);
+    vm_syslog(p[i], 2000);
   }
 }
