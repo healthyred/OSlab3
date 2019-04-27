@@ -110,11 +110,11 @@ int clockAlgorithm(){
   pageToDisk->resident = -1;
   current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-  if(pageToDisk->dirty == 1 && pageToDisk->zero != 0){
+  if(pageToDisk->dirty == 1 || pageToDisk->zero != 0){
     //only write if page is not zero and it is dirty
     disk_write(pageToDisk->disk_block, freepage);
   }
-  
+
   pageToDisk->dirty = 0;
   //set the resident bit of the evicted page to nonresident
   return freepage;
