@@ -145,13 +145,14 @@ int vm_fault(void *addr, bool write_flag){
       ppage_num = phys_mem.top();
       phys_mem.pop();
     }
-      if(toUpdate->zero){
-    //    cout << "Zeroing page: " << endl;
-    //If it hasn't been zeroed, I am zeroing it
-    memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0, VM_PAGESIZE);
-      }else{
-	//    cout << "reading in wrong places" << endl;
-    disk_read(toUpdate->disk_block, toUpdate->ppage);
+    
+    if(toUpdate->zero){
+      //cout << "Zeroing page: " << endl;
+      //If it hasn't been zeroed, I am zeroing it
+      memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0, VM_PAGESIZE);
+    }else{
+	    //cout << "reading in wrong places" << endl;
+      disk_read(toUpdate->disk_block, toUpdate->ppage);
     }
   }
 
