@@ -151,6 +151,7 @@ int vm_fault(void *addr, bool write_flag){
     }
 
     toUpdate->ppage = ppage_num;
+    current->ptable.ptes[vpageidx].ppage = ppage_num;
     if(toUpdate->zero){
       //cout << "Zeroing page: " << endl;
       //If it hasn't been zeroed, I am zeroing it
@@ -159,17 +160,14 @@ int vm_fault(void *addr, bool write_flag){
       //cout << "reading in wrong places" << endl;
       disk_read(toUpdate->disk_block, toUpdate->ppage);
     }
+    clockQ.push_back(toUpdate);
   }
 
   /*updating this new page*/
   toUpdate -> reference = 1;
   //  toUpdate -> ppage = ppage_num;
   toUpdate -> resident = 1;
-
-  clockQ.push_back(toUpdate);
-
   //update page_table_t
-  current->ptable.ptes[vpageidx].ppage = ppage_num;
   if(write_flag || toUpdate->dirty){
     cout << "vpageidx: " << vpageidx << endl;
     current->ptable.ptes[vpageidx].write_enable = 1;
