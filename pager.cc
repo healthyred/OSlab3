@@ -110,7 +110,7 @@ int clockAlgorithm(){
   pageToDisk->resident = -1;
   current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
-  if(pageToDisk->dirty == 1 && pageToDisk->zero != 1){
+  if(pageToDisk->dirty == 1){
     //only write if page is not zero and it is dirty
     disk_write(pageToDisk->disk_block, freepage);
   }
@@ -145,6 +145,14 @@ int vm_fault(void *addr, bool write_flag){
       ppage_num = phys_mem.top();
       phys_mem.pop();
     }
+      if(toUpdate->zero){
+    //    cout << "Zeroing page: " << endl;
+    //If it hasn't been zeroed, I am zeroing it
+    memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0, VM_PAGESIZE);
+      }else{
+	//    cout << "reading in wrong places" << endl;
+    disk_read(toUpdate->disk_block, toUpdate->ppage);
+    }
   }
 
   /*updating this new page*/
@@ -153,13 +161,6 @@ int vm_fault(void *addr, bool write_flag){
   toUpdate -> resident = 1;
 
   clockQ.push_back(toUpdate);
-
-  if(toUpdate->zero){
-    //    cout << "Zeroing page: " << endl;
-    memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0, VM_PAGESIZE);
-  }else{
-    disk_read(toUpdate->disk_block, toUpdate->ppage);
-  }
 
   //update page_table_t
   current->ptable.ptes[vpageidx].ppage = ppage_num;
