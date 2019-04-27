@@ -55,9 +55,7 @@ void vm_init(unsigned int memory_pages, unsigned int disk_blocks){
   for (int j = 0; j < disk_blocks; j++){
     disk.push(j);
   }
-  
-  //cout << "Pager started with" + to_string( memory_pages) + "physical memory pages." << endl;
-  
+    
 }
 
 void vm_create(pid_t pid){
@@ -75,7 +73,6 @@ void vm_create(pid_t pid){
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, newProcess));
   current = newProcess;
-  //cout << "hello" <<endl;
 };
 
 void vm_switch(pid_t pid){
@@ -96,7 +93,6 @@ int clockAlgorithm(){
     pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
     clockQ.push_back(clockQ.front());
     clockQ.erase(clockQ.begin());
-    cout << "Clock_page: " << pageToDisk -> arenaidx << endl;
     current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
     current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   }
@@ -108,7 +104,6 @@ int clockAlgorithm(){
   int freepage = pageToDisk->ppage;
   pageToDisk->ppage = -1;
   pageToDisk->resident = -1;
-  cout <<"Ptable index: " << pageToDisk->arenaidx << endl;
   current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   if(pageToDisk->dirty == 1){
@@ -136,7 +131,6 @@ int vm_fault(void *addr, bool write_flag){
   
   Vpage* toUpdate = (current->pageVector.at(vpageidx));
   toUpdate-> arenaidx = vpageidx;
-  cout << "Updating the arena idx: " << toUpdate->arenaidx << endl;
   int ppage_num;//current ppage we are on
 
   if(toUpdate->resident == -1){
@@ -153,11 +147,9 @@ int vm_fault(void *addr, bool write_flag){
     toUpdate->ppage = ppage_num;
     current->ptable.ptes[vpageidx].ppage = ppage_num;
     if(toUpdate->zero){
-      //cout << "Zeroing page: " << endl;
       //If it hasn't been zeroed, I am zeroing it
       memset((char *) ((unsigned long) pm_physmem + (ppage_num * VM_PAGESIZE)), 0, VM_PAGESIZE);
     }else{
-      //cout << "reading in wrong places" << endl;
       disk_read(toUpdate->disk_block, toUpdate->ppage);
     }
     clockQ.push_back(toUpdate);
@@ -169,7 +161,6 @@ int vm_fault(void *addr, bool write_flag){
   toUpdate -> resident = 1;
   //update page_table_t
   if(write_flag || toUpdate->dirty){
-    cout << "vpageidx: " << vpageidx << endl;
     current->ptable.ptes[vpageidx].write_enable = 1;
     current->ptable.ptes[vpageidx].read_enable = 1;
     toUpdate->dirty = 1;
@@ -265,9 +256,7 @@ int vm_syslog(void *message, unsigned int len){
   int size = current->pageVector.size();
   unsigned long cap = (unsigned long) size * (unsigned long) VM_PAGESIZE + (unsigned long) VM_ARENA_BASEADDR;
   
-  //cout << "cap" << cap << endl;
   unsigned long addr = (unsigned long) message;
-  //cout << "addr" << addr << endl;
   unsigned long max = addr + len;
 
   if(len <= 0 || max > cap || addr < (unsigned long) VM_ARENA_BASEADDR){
@@ -285,10 +274,8 @@ int vm_syslog(void *message, unsigned int len){
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
-    //cout << "Syslog Ppage: " << ppage_num << endl;
 
     if(current->ptable.ptes[vpageidx].read_enable == 0){
-      cout << "Vpageix: " << vpageidx << endl;
       unsigned long faultaddress = convertIdxtoaddress(vpageidx);
       void* void_fault = (void *) faultaddress; 
       vm_fault(void_fault, false);
@@ -309,7 +296,6 @@ int vm_syslog(void *message, unsigned int len){
 
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
-      //cout << "idx: " << idx << endl;
      s.append(string(1, ((char *) pm_physmem)[idx]));
     }
 
