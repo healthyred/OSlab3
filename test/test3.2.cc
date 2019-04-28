@@ -13,6 +13,10 @@ int main()
   p[i][2] = 'l';
   p[i][3] = 'l';
   p[i][4] = 'o';
-  vm_syslog(p, 5);
+  vm_syslog(p[i], 5);
+  }
+
+  for (int j = 0; j < 5; j++){
+    vm_syslog(p[j],5);
   }
 }
