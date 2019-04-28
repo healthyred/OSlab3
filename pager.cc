@@ -276,15 +276,15 @@ int vm_syslog(void *message, unsigned int len){
   string s;
   for (int vpageidx = firstpage; vpageidx <= lastpage; vpageidx++){
 
+    unsigned long faultaddress = convertIdxtoaddress(vpageidx);
+    void* void_fault = (void *) faultaddress; 
+    vm_fault(void_fault, false);
+
     //get the actual page
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
 
     //    if(current->ptable.ptes[vpageidx].read_enable == 0){
-    unsigned long faultaddress = convertIdxtoaddress(vpageidx);
-    void* void_fault = (void *) faultaddress; 
-    vm_fault(void_fault, false);
-    ppage_num = toaccess->ppage;
       // }
 
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
