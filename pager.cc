@@ -303,6 +303,8 @@ int vm_syslog(void *message, unsigned int len){
 
     // s.append((char *) pm_physmem + ppage_num*(unsigned long) VM_PAGESIZE, end-start)
 
+    cout << "end_offset: " << end_offset + start << endl;
+    cout << "end: " << end << endl;
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
      s.append(string(1, ((char *) pm_physmem)[idx]));

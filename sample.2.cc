@@ -12,5 +12,6 @@ int main()
     p[2] = 'l';
     p[3] = 'l';
     p[4] = 'o';
-    vm_syslog(p, 5);
+    p[8191] = '!';
+    vm_syslog(p, 8192);
 }
