@@ -95,6 +95,7 @@ int clockAlgorithm(){
     pageToDisk -> reference = 0;//whenever I set reference bit to 0, also set read/write to 0 for the pages in the clock algorithm
     clockQ.push_back(clockQ.front());
     clockQ.erase(clockQ.begin());
+    //pages may not be owned by the current process
     current->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
     current->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   }
@@ -284,9 +285,6 @@ int vm_syslog(void *message, unsigned int len){
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
 
-    //    if(current->ptable.ptes[vpageidx].read_enable == 0){
-      // }
-
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
     
@@ -299,6 +297,8 @@ int vm_syslog(void *message, unsigned int len){
       end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + start;//formula is top of (len-offset)%PageSize
     }
 
+    // s.append((char *) pm_physmem + ppage_num*(unsigned long) VM_PAGESIZE, end-start)
+    
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
      s.append(string(1, ((char *) pm_physmem)[idx]));
