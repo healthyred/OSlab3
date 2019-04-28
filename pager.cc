@@ -294,15 +294,15 @@ int vm_syslog(void *message, unsigned int len){
     
     if(vpageidx == firstpage){
       start = start + offset;
-    }
+    }    
     
     //calculating end page
     if(vpageidx == lastpage){
-      end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + start;//formula is top of (len-offset)%PageSize
+      end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);;//formula is top of (len-offset)%PageSize
     }
 
     // s.append((char *) pm_physmem + ppage_num*(unsigned long) VM_PAGESIZE, end-start)
-    
+
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
      s.append(string(1, ((char *) pm_physmem)[idx]));

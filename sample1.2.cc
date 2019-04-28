@@ -13,5 +13,9 @@ int main()
     p[7000] = 'l';
     p[7643] = 'o';
     p[8191] = '!';
-    vm_syslog(p, 8192);
+    p[8190] = '!';
+    vm_syslog(p+8181, 10);
+    p = (char *) vm_extend();
+    p[8000] = '!';
+    vm_syslog(p+8181, 10);
 }
