@@ -97,9 +97,9 @@ int clockAlgorithm(){
     clockQ.push_back(clockQ.front());
     clockQ.erase(clockQ.begin());
     //pages may not be owned by the current process
-    process* toChange = processMap.find(pageToDisk->pid)->second;
-    toChange->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
-    toChange->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+  process* toChange = processMap.find(pageToDisk->pid)->second;
+  toChange->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
+  ToChange->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   }
   
   //set dirty bit to 0, since we no longer need it, unless we actually change the contents
@@ -111,7 +111,7 @@ int clockAlgorithm(){
   pageToDisk->resident = -1;
   process* toChange = processMap.find(pageToDisk->pid)->second;
   toChange->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
-  toChange->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+  ToChange->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
   if(pageToDisk->dirty == 1){
     //only write if page is not zero and it is dirty
     disk_write(pageToDisk->disk_block, freepage);
@@ -247,7 +247,7 @@ void* vm_extend(){
   //store vpage in process
   current->pageVector.push_back(x);
   int idx = current->pageVector.size() - 1;
-  pid_t pid = current->pid;
+  x->pid = current->pid;
  
   //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
 
