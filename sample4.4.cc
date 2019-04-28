@@ -10,12 +10,13 @@ int main()
     p[i] = (char *) vm_extend();
     for (int j = 0; j < 10; j++){
       p[i][j] = 'o';
+      vm_yield();
     }
   }
 
   for (int i = 0; i < 20;i++){
     p[i][i+1] = 'w';
-    vm_syslog(p[i], 2000);
+    vm_syslog(p[i], 10000);
     
   }
 }
