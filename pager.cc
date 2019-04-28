@@ -26,6 +26,7 @@ struct Vpage{
 struct process{
   vector<Vpage*> pageVector;//deallocate this vector
   page_table_t ptable;//deallocate this page table
+  pid_t pid;
 };
 
 process* current; //Then we look through map each time
@@ -70,6 +71,7 @@ void vm_create(pid_t pid){
     ptable.ptes[i].write_enable = 0;
   }
   newProcess->ptable = ptable;
+  newProcess->pid = pid;
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, newProcess));
   //  current = newProcess;
@@ -182,6 +184,9 @@ void vm_destroy(){
   
   for (it = processMap.begin(); it != processMap.end();it++)
   {
+    if(it->first != current->pid){
+      continue;
+    }
     vector<Vpage *>::iterator it2;
     process* temp = it-> second;
     vector<Vpage *>::iterator it3;
