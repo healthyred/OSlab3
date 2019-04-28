@@ -72,7 +72,7 @@ void vm_create(pid_t pid){
   newProcess->ptable = ptable;
   //process* toadd = &newProcess;
   processMap.insert(pair<pid_t, process* >(pid, newProcess));
-  current = newProcess;
+  //  current = newProcess;
 };
 
 void vm_switch(pid_t pid){
@@ -186,11 +186,11 @@ void vm_destroy(){
     process* temp = it-> second;
     vector<Vpage *>::iterator it3;
     
-    for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();++it2)
+    for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();it2++)
     {
       Vpage* temp2 = *it2;
       int cQidx = 0;
-      for(it3 = clockQ.begin(); it3 != clockQ.end();++it3){
+      for(it3 = clockQ.begin(); it3 != clockQ.end();it3++){
 	      if(temp2 == *it3){
       	  clockQ.erase(clockQ.begin()+cQidx);
       	  break;
@@ -275,12 +275,12 @@ int vm_syslog(void *message, unsigned int len){
     Vpage* toaccess = current->pageVector.at(vpageidx);
     int ppage_num = toaccess->ppage;
 
-    if(current->ptable.ptes[vpageidx].read_enable == 0){
-      unsigned long faultaddress = convertIdxtoaddress(vpageidx);
-      void* void_fault = (void *) faultaddress; 
-      vm_fault(void_fault, false);
-      ppage_num = toaccess->ppage;
-    }
+    //    if(current->ptable.ptes[vpageidx].read_enable == 0){
+    unsigned long faultaddress = convertIdxtoaddress(vpageidx);
+    void* void_fault = (void *) faultaddress; 
+    vm_fault(void_fault, false);
+    ppage_num = toaccess->ppage;
+      // }
 
     unsigned long start = ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     unsigned long end = start + (unsigned long) VM_PAGESIZE;
