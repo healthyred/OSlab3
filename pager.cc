@@ -210,9 +210,9 @@ void vm_destroy(){
       if(temp2->ppage != -1){
 	      phys_mem.push(temp2->ppage);	
       }
-      if(temp2->disk_block != -1){
-	      disk.push(temp2->disk_block);
-      }
+    
+      disk.push(temp2->disk_block);
+      
       delete temp2;
       
     }
