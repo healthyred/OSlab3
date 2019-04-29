@@ -199,17 +199,17 @@ void vm_destroy(){
     for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();it2++)
     {
       Vpage* temp2 = *it2;
-      int cQidx = 0;
+      //int cQidx = 0;
       for(it3 = clockQ.begin(); it3 != clockQ.end();it3++){
-	      if(temp2 == *it3){
-      	  clockQ.erase(clockQ.begin()+cQidx);
+	if(temp2 == *it3){
+	  clockQ.erase(it3);
       	  break;
       	}
-	      cQidx++;
+	
        }
       
-      if(temp2->ppage != -1){
-	      phys_mem.push(temp2->ppage);	
+      if(temp2->ppage > -1){
+	 phys_mem.push(temp2->ppage);	
       }
     
       disk.push(temp2->disk_block);
@@ -299,7 +299,11 @@ int vm_syslog(void *message, unsigned int len){
     
     //calculating end page
     if(vpageidx == lastpage){
-      end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);;//formula is top of (len-offset)%PageSize
+      end = (len+offset) % ((unsigned long) VM_PAGESIZE) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);//formula is top of (len-offset)%PageSize
+    }
+
+    if(end == 0){
+      end = VM_PAGESIZE + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     }
 
     // cout << "end_offset: " << end_offset + start << endl;
