@@ -112,6 +112,7 @@ int clockAlgorithm(){
   process* toChange = processMap.find(pageToDisk->pid)->second;
   toChange->ptable.ptes[pageToDisk->arenaidx].write_enable = 0;
   toChange->ptable.ptes[pageToDisk->arenaidx].read_enable = 0;
+  toChange->ptable.ptes[pageToDisk->arenaidx].ppage = -1;
   if(pageToDisk->dirty == 1){
     //only write if page is not zero and it is dirty
     disk_write(pageToDisk->disk_block, freepage);
@@ -301,10 +302,8 @@ int vm_syslog(void *message, unsigned int len){
       end = (len+offset) % ((unsigned long) VM_PAGESIZE+1) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);;//formula is top of (len-offset)%PageSize
     }
 
-    // s.append((char *) pm_physmem + ppage_num*(unsigned long) VM_PAGESIZE, end-start)
-
-    cout << "end_offset: " << end_offset + start << endl;
-    cout << "end: " << end << endl;
+    // cout << "end_offset: " << end_offset + start << endl;
+    //cout << "end: " << end << endl;
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
      s.append(string(1, ((char *) pm_physmem)[idx]));
