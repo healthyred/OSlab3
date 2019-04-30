@@ -302,7 +302,7 @@ int vm_syslog(void *message, unsigned int len){
       end = (len+offset) % ((unsigned long) VM_PAGESIZE) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);//formula is top of (len-offset)%PageSize
     }
 
-    if(end == 0){
+    if(end % ((unsigned long) VM_PAGESIZE) == 0){
       end = VM_PAGESIZE + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     }
 
