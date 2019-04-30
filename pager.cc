@@ -11,6 +11,17 @@
 #include <cstring>
 using namespace std;
 
+
+/*Work Deferral: 
+
+1. We defer work when we create a new virtual page and we initialize a zero bit instead of zeroing the page in
+vm_extend(), we defer this until we actually fault, and then if it is a zero bit, then we zero it out every single time since the fault is cheaper than the reading from disk.
+2. We only write to disk, dirty pages or pages that have been written to we defer the work to when we have
+confirmed that the page has actually changed content wise from the last time it was written to disk.
+3. We never write zero pages to disk, and only write zero pages to disk if we have changed something.
+*/
+
+
 typedef vector<page_table_t> tables; //Vector of page tables
 
 struct Vpage{
@@ -25,25 +36,26 @@ struct Vpage{
 };
 
 struct process{
-  vector<Vpage*> pageVector;//deallocate this vector
-  page_table_t ptable;//deallocate this page table
+  vector<Vpage*> pageVector;
+  page_table_t ptable;
   pid_t pid;
 };
 
 process* current; //Then we look through map each time
 stack<int> phys_mem;
 stack<int> disk;
-//map<int, page_table_t> diskMap;
 map<pid_t, process*> processMap;
 map<pid_t, process*>::iterator it;
 vector<Vpage*> clockQ; //A queue of the most recently accessed processes
 
 unsigned long convertIdxtoaddress(int idx){
+  /*Conversion from idx into the void* address*/
     unsigned long address = ((unsigned long) idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR;
     return address;
 };
 
 int convertAddresstoIdx(unsigned long address){
+  /*Conversion from address into the idx of Vpage vector*/
     int idx = (int) (address - (unsigned long)(VM_ARENA_BASEADDR))/ (unsigned long) VM_PAGESIZE;
     return idx;
 };
@@ -81,7 +93,6 @@ void vm_create(pid_t pid){
 void vm_switch(pid_t pid){
   //write error for calling this before vm_create
   //If there is a process, then we need to swap the process
-  //Infrastrucure will call VMswitch
   page_table_t* temp = &(processMap[pid]->ptable);
   page_table_base_register = temp;
   current = processMap[pid];
@@ -175,8 +186,6 @@ int vm_fault(void *addr, bool write_flag){
   }else{
     current->ptable.ptes[vpageidx].read_enable = 1;
   }
-
-  //Zero when zeroPage is being used using memset
   
   return 0;
 }
@@ -186,12 +195,15 @@ void vm_destroy(){
     (page tables, physical pages, and disk blocks), released physical pages need to go back onto the disk block.*/
 
   //Get each process in the map
+  pid_t a = current->pid;
   
   for (it = processMap.begin(); it != processMap.end();it++)
   {
-    if(it->first != current->pid){
+    /*We check for the process that is equal to the pid*/
+    if(it->first != a){
       continue;
     }
+    /*We delete the Vpages owned by the current process and the vpages that are owned by the same process in the clockQ.*/
     vector<Vpage *>::iterator it2;
     process* temp = it-> second;
     vector<Vpage *>::iterator it3;
@@ -199,21 +211,18 @@ void vm_destroy(){
     for (it2 = temp->pageVector.begin(); it2 != temp->pageVector.end();it2++)
     {
       Vpage* temp2 = *it2;
-      //int cQidx = 0;
       for(it3 = clockQ.begin(); it3 != clockQ.end();it3++){
 	if(temp2 == *it3){
 	  clockQ.erase(it3);
       	  break;
       	}
-	
-       }
+      }
       
       if(temp2->ppage > -1){
 	 phys_mem.push(temp2->ppage);	
       }
     
       disk.push(temp2->disk_block);
-      
       delete temp2;
       
     }
@@ -237,7 +246,6 @@ void* vm_extend(){
   Vpage* x = new Vpage;
 
   //get disk block
-  
   x->disk_block = disk.top();
   disk.pop();
   x->zero = 1;
@@ -249,9 +257,6 @@ void* vm_extend(){
   current->pageVector.push_back(x);
   int idx = current->pageVector.size() - 1;
   x->pid = current->pid;
- 
-  //diskMap.insert(pair<int, page_table_t>(x.disk_block , current));
-
   void* address = (void*) (( idx * (unsigned long) VM_PAGESIZE) + (unsigned long) VM_ARENA_BASEADDR);
   
   return address; 
@@ -302,12 +307,11 @@ int vm_syslog(void *message, unsigned int len){
       end = (len+offset) % ((unsigned long) VM_PAGESIZE) + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);//formula is top of (len-offset)%PageSize
     }
 
+    //The case where the end page is the exact length of the page
     if(end % ((unsigned long) VM_PAGESIZE) == 0){
       end = VM_PAGESIZE + ((unsigned long) ppage_num * (unsigned long) VM_PAGESIZE);
     }
 
-    // cout << "end_offset: " << end_offset + start << endl;
-    //cout << "end: " << end << endl;
     //appending the strings
     for (unsigned long idx = start; idx < end; idx++){
      s.append(string(1, ((char *) pm_physmem)[idx]));
